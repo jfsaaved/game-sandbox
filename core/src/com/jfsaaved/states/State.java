@@ -5,10 +5,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector3;
 import com.jfsaaved.Sandbox;
-import com.jfsaaved.movingobject.Player;
-import com.jfsaaved.object.Object;
-
-import java.util.List;
 
 public abstract class State {
 
@@ -40,8 +36,6 @@ public abstract class State {
         shapeRenderer.end();
     }
 
-    protected abstract boolean detectCollision(float x, float y, List<Object> objects);
-    protected abstract void handleInput(float dt);
     protected abstract void update(float dt);
     protected abstract void render(SpriteBatch spriteBatch);
     protected abstract void shapeRender(ShapeRenderer shapeRenderer);

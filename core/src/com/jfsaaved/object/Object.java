@@ -16,8 +16,8 @@ public abstract class Object {
         this.hurtBox = new Rectangle(x, y, width, height);
     }
 
-    public boolean contains(float x, float y) {
-        return this.hurtBox.contains(x, y);
+    public Rectangle getHurtBox(){
+        return hurtBox;
     }
 
     public void drawBox(ShapeRenderer shapeRenderer){
