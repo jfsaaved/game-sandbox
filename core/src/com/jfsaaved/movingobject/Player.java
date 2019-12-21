@@ -5,6 +5,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.jfsaaved.Sandbox;
 
 public class Player extends MovingObject {
 
@@ -20,7 +21,7 @@ public class Player extends MovingObject {
         GOING_UP, GOING_DOWN, NEUTRAL
     }
 
-    private final float COL_FRAME_DELAY_MAX = 10f;
+    private final float COL_FRAME_DELAY_MAX = 7f;
     private final float COL_FRAME_DELAY_MULTIPLIER = 70f;
     private final int STANDING_COL_FRAMES = 4;
     private final int WALKING_COL_FRAMES = 10;
@@ -36,6 +37,7 @@ public class Player extends MovingObject {
     protected FreeFallState freeFallState;
 
     private int speed;
+    private int jumpStrength;
 
     // Change in Velocity over time
     private int acceleration;
@@ -43,7 +45,10 @@ public class Player extends MovingObject {
     // Speed over time
     private int velocityLeft;
     private int velocityRight;
+    private int velocityUp;
+    private int velocityDown;
     private int velocityMax;
+    private int jumpMax;
 
     public Player(float x, float y, int width, int height, TextureRegion textureRegion) {
         super(x, y, width, height);
@@ -53,12 +58,15 @@ public class Player extends MovingObject {
         this.freeFallState = FreeFallState.NEUTRAL;
 
         speed = 2;
-        acceleration = 10 * speed;
-        velocityMax = 150 * speed;
+        weight = 4;
+        jumpStrength = 2;
+        acceleration = (10 - weight) * speed;
+        velocityMax = (150 - (weight * 2)) * speed;
+        jumpMax = (80 - (weight * 2)) * jumpStrength;
+        velocityUp = 0;
+        velocityDown = 0;
         velocityLeft = 0;
         velocityRight = 0;
-
-        weight = 5;
 
         this.colFrame = 0;
         this.colFrameDelay = COL_FRAME_DELAY_MAX;
@@ -75,8 +83,30 @@ public class Player extends MovingObject {
         }
     }
 
+    public void reset(){
+        setX(Sandbox.WIDTH/2);
+        setY(Sandbox.HEIGHT/2);
+
+        this.actionState = ActionState.IDLE;
+        this.environmentState = EnvironmentState.ON_GROUND;
+        this.freeFallState = FreeFallState.NEUTRAL;
+
+        speed = 2;
+        weight = 4;
+        jumpStrength = 2;
+        acceleration = (10 - weight) * speed;
+        velocityMax = (150 - (weight * 2)) * speed;
+        jumpMax = (80 - (weight * 2)) * jumpStrength;
+        velocityUp = 0;
+        velocityDown = 0;
+        velocityLeft = 0;
+        velocityRight = 0;
+
+        this.colFrame = 0;
+        this.colFrameDelay = COL_FRAME_DELAY_MAX;
+    }
+
     public void update(float dt){
-        checkFreeFallStates(dt);
         checkEnvironmentStates(dt);
         checkActionStates(dt);
         updateAnimations(dt);
@@ -127,14 +157,10 @@ public class Player extends MovingObject {
     }
 
     private void checkActionStates(float dt){
-        if(actionState == ActionState.IDLE) updateOnIdle(dt);
-        if(actionState == ActionState.MOVE) updateOnMove(dt);
+        if(actionState == ActionState.IDLE && environmentState == EnvironmentState.ON_GROUND) updateOnIdle(dt);
         if(actionState == ActionState.JUMP) updateOnJump(dt);
-    }
-
-    private void checkFreeFallStates(float dt){
-        freeFallState = FreeFallState.GOING_DOWN;
-        if(collidingDown) freeFallState = FreeFallState.NEUTRAL;
+        if(actionState == ActionState.MOVE && environmentState == EnvironmentState.ON_GROUND) updateOnMove(dt);
+        updateJump(dt);
     }
 
     private void checkEnvironmentStates(float dt){
@@ -144,15 +170,18 @@ public class Player extends MovingObject {
     }
 
     public void handleInput(float dt){
-        if(Gdx.input.isKeyJustPressed(Input.Keys.Z))
-            if(environmentState == EnvironmentState.ON_GROUND)
-                if(freeFallState == FreeFallState.NEUTRAL)
-                    setActionState(ActionState.JUMP);
+        setActionState(ActionState.IDLE);
         if(Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) flip = true;
         if(Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) flip = false;
         if(Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.RIGHT))
             setActionState(ActionState.MOVE);
-        else setActionState(ActionState.IDLE);
+        if(Gdx.input.isKeyJustPressed(Input.Keys.Z))
+            if(environmentState == EnvironmentState.ON_GROUND)
+                if(freeFallState == FreeFallState.NEUTRAL)
+                    setActionState(ActionState.JUMP);
+
+        if(Gdx.input.isKeyJustPressed(Input.Keys.X)) reset();
+
     }
 
     private void updateOnIdle(float dt) {
@@ -194,9 +223,84 @@ public class Player extends MovingObject {
     }
 
     private void updateOnJump(float dt) {
-
+        environmentState = EnvironmentState.IN_AIR;
+        freeFallState = FreeFallState.GOING_UP;
     }
 
+    private void updateJump(float dt){
+        if(environmentState == EnvironmentState.IN_AIR){
+            if(freeFallState == FreeFallState.GOING_UP) {
+                int extraUmpf = 0;
+                if(velocityLeft > 0) extraUmpf = velocityLeft/8;
+                else if(velocityRight > 0) extraUmpf = velocityRight/8;
+                if(velocityUp < jumpMax + extraUmpf) {
+                    velocityUp = velocityUp + acceleration;
+                }
+                if(velocityUp >= jumpMax + extraUmpf) {
+                    freeFallState = FreeFallState.GOING_DOWN;
+                }
+            }
+            if(freeFallState == FreeFallState.GOING_DOWN){
+                if(velocityUp > 0)
+                    velocityUp = velocityUp - acceleration;
+            }
+
+            if(velocityLeft > 0) {
+                velocityLeft = velocityLeft - (acceleration/(jumpStrength*2));
+                moveLeft(velocityLeft * dt);
+            }
+            if(velocityLeft < 0) velocityLeft = 0;
+
+            if(velocityRight > 0) {
+                velocityRight = velocityRight - (acceleration/(jumpStrength*2)) ;
+                moveRight(velocityRight * dt);
+            }
+            if(velocityRight < 0) velocityRight = 0;
+        }
+
+        if(collidingDown){
+            if(velocityDown > 0) {
+                velocityUp = 0;
+                velocityDown = 0;
+                environmentState = EnvironmentState.ON_GROUND;
+                freeFallState = FreeFallState.NEUTRAL;
+            }
+        }
+
+        moveUp(velocityUp * dt);
+    }
+
+    public int getWeight(){
+        return weight;
+    }
+
+    public int getSpeed(){
+        return speed;
+    }
+
+    public int getAcceleration(){
+        return acceleration;
+    }
+
+    public int getVelocityMax(){
+        return velocityMax;
+    }
+
+    public void setVelocityUp(int velocityUp){
+        this.velocityUp = velocityUp;
+    }
+
+    public int getVelocityUp(){
+        return velocityUp;
+    }
+
+    public void setVelocityDown(int velocityDown){
+        this.velocityDown = velocityDown;
+    }
+
+    public int getVelocityDown(){
+        return velocityDown;
+    }
 
 }
 

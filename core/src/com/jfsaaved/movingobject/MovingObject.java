@@ -78,8 +78,16 @@ public abstract class MovingObject {
         return this.x;
     }
 
+    public void setX(float x){
+        this.x = x;
+    }
+
     public float getY(){
         return this.y;
+    }
+
+    public void setY(float y){
+        this.y = y;
     }
 
     public boolean contains(Rectangle box2){

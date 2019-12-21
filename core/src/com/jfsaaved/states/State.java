@@ -12,13 +12,15 @@ public abstract class State {
     protected OrthographicCamera orthographicCamera;
     protected Vector3 mouse;
     protected int gravity;
+    protected int gravityStrength;
 
     protected State (GameStateManager gameStateManager) {
         this.gameStateManager = gameStateManager;
         this.orthographicCamera = new OrthographicCamera();
         this.mouse = new Vector3();
-        this.gravity = 100;
-        this.updateCam((int) 640, (int) 384, Sandbox.WIDTH/2 + 160, Sandbox.HEIGHT/2 + 96);
+        this.gravity = 400;
+        this.gravityStrength = 1;
+        this.updateCam((int) 1280/2, (int) 768/2, Sandbox.WIDTH/2 + 160, Sandbox.HEIGHT/2 + 96);
     }
 
     protected void updateCam(int width, int height, float x, float y){

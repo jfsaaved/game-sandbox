@@ -7,7 +7,6 @@ import com.jfsaaved.Sandbox;
 import com.jfsaaved.movingobject.Player;
 import com.jfsaaved.object.InvisibleWall;
 import com.jfsaaved.ui.DialogueImages;
-import jdk.jfr.consumer.RecordedClass;
 
 public class PlayState extends State{
 
@@ -17,12 +16,13 @@ public class PlayState extends State{
 
     public PlayState(GameStateManager gameStateManager){
         super(gameStateManager);
-        String[] text1 = {"if(colFrame > (WALKING_COL_FRAMES - 1)) colFrame = 0;",
-        "colFrameDelay -= (dt * COL_FRAME_DELAY_MULTIPLIER);"};
+
+        String[] text1 = {"Text Box & Move Test - github.com/jfsaaved, Z - Jump, X - Reset, Arrow Keys - Move"};
         diag = new DialogueImages(orthographicCamera, text1);
 
-        wall = new InvisibleWall(Sandbox.WIDTH/2, Sandbox.HEIGHT/2 - 192, 320, 192);
+        wall = new InvisibleWall(Sandbox.WIDTH/2, Sandbox.HEIGHT/2 - 250, 320, 192);
         this.player = new Player(Sandbox.WIDTH/2, Sandbox.HEIGHT/2, 36, 54, Sandbox.images.getAtlas("assets").findRegion("player"));
+        diag.updatePosition(Sandbox.WIDTH/2 - 130, player.getY() + 150);
     }
 
     public void checkCollisions(){
@@ -31,7 +31,7 @@ public class PlayState extends State{
 
     public void wallDetection(){
         player.setCollidingDown(false);
-        Rectangle outerBox = new Rectangle(player.getX() - 3, player.getY() - 3, 39, 57);
+        Rectangle outerBox = new Rectangle(player.getX() - 1, player.getY() - 1, 39, 57);
         if((wall.getHurtBox().overlaps(outerBox))){
             player.setCollidingDown(true);
         }
@@ -39,12 +39,19 @@ public class PlayState extends State{
 
     public void applyGravity(float dt){
         if(!player.getCollidingDown()) {
-            player.moveDown((gravity + player.getWeight()) * dt);
+            if(player.getVelocityUp() <= 0) {
+                if (player.getVelocityDown() < gravity)
+                    player.setVelocityDown(player.getVelocityDown() + (player.getAcceleration() * gravityStrength));
+                player.moveDown(player.getVelocityDown() * dt);
+                Rectangle outerBox = new Rectangle(player.getX() - 1, player.getY() - 1, 39, 57);
+                    if((wall.getHurtBox().overlaps(outerBox))) player.setY(wall.getHurtBox().y + wall.getHurtBox().height);
+            }
         }
     }
 
     @Override
     protected void update(float dt) {
+
         applyGravity(dt);
         checkCollisions();
         player.update(dt);
