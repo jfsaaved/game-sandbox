@@ -20,6 +20,8 @@ public abstract class MovingObject {
     protected boolean collidingLeft;
     protected boolean collidingRight;
 
+    protected int weight;
+
     public MovingObject(float x, float y, int width, int height){
         this.x = x;
         this.y = y;
@@ -35,6 +37,8 @@ public abstract class MovingObject {
         this.collidingDown = false;
         this.collidingLeft = false;
         this.collidingRight = false;
+
+        this.weight = 5;
     }
 
     public void drawBox(ShapeRenderer shapeRenderer){
@@ -94,6 +98,8 @@ public abstract class MovingObject {
         this.collidingDown = value;
     }
 
+    public boolean getCollidingDown() { return this.collidingDown; }
+
     public void setCollidingLeft(boolean value) {
         this.collidingLeft = value;
     }
@@ -104,6 +110,14 @@ public abstract class MovingObject {
 
     public Rectangle getHurtBox(){
         return hurtBox;
+    }
+
+    public void setWeight(int weight) {
+        this.weight = weight;
+    }
+
+    public int getWeight(){
+        return this.weight;
     }
 
 }

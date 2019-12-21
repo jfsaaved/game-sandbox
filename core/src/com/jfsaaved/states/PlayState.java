@@ -17,11 +17,16 @@ public class PlayState extends State{
 
     public PlayState(GameStateManager gameStateManager){
         super(gameStateManager);
-        String[] text1 = {"Hello world!"};
+        String[] text1 = {"if(colFrame > (WALKING_COL_FRAMES - 1)) colFrame = 0;",
+        "colFrameDelay -= (dt * COL_FRAME_DELAY_MULTIPLIER);"};
         diag = new DialogueImages(orthographicCamera, text1);
 
         wall = new InvisibleWall(Sandbox.WIDTH/2, Sandbox.HEIGHT/2 - 192, 320, 192);
         this.player = new Player(Sandbox.WIDTH/2, Sandbox.HEIGHT/2, 36, 54, Sandbox.images.getAtlas("assets").findRegion("player"));
+    }
+
+    public void checkCollisions(){
+        wallDetection();
     }
 
     public void wallDetection(){
@@ -32,9 +37,16 @@ public class PlayState extends State{
         }
     }
 
+    public void applyGravity(float dt){
+        if(!player.getCollidingDown()) {
+            player.moveDown((gravity + player.getWeight()) * dt);
+        }
+    }
+
     @Override
     protected void update(float dt) {
-        wallDetection();
+        applyGravity(dt);
+        checkCollisions();
         player.update(dt);
         player.handleInput(dt);
         diag.update(dt);
