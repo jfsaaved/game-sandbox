@@ -3,9 +3,9 @@ package com.jfsaaved.movingobject;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
-public class AnimationHandler {
+public class SpriteHandler {
 
-    private enum AnimationState{
+    protected enum AnimationState{
         STANDING, WALKING
     }
 
@@ -19,62 +19,68 @@ public class AnimationHandler {
     private boolean flip;
     private boolean hide;
 
-    public AnimationHandler(){
+    private AnimationState animationState;
+
+    public SpriteHandler(){
         flip = false;
         hide = false;
     }
 
-    public AnimationHandler handleStandingSprite(TextureRegion textureRegion, int width, int height, int frames) {
+    public SpriteHandler handleStandingSprite(TextureRegion textureRegion, int width, int height, int frames) {
         standingSprite = new Sprite[frames];
-        for(int col = 0; col < frames; col++) {
+        for(int col = 0; col < frames; col++)
             standingSprite[col] = new Sprite(textureRegion, width * col, 0, width, height);
-        }
         return this;
     }
 
-    public AnimationHandler handleWalkingSprite(TextureRegion textureRegion, int width, int height, int frames) {
+    public SpriteHandler handleWalkingSprite(TextureRegion textureRegion, int width, int height, int frames) {
         walkingSprite = new Sprite[frames];
-        for(int col = 0; col < frames; col++) {
+        for(int col = 0; col < frames; col++)
             walkingSprite[col] = new Sprite(textureRegion, width * (col + 5), 0, width, height);
-        }
         return this;
     }
 
-    public void setState(AnimationState animationState){
+    public void setAnimationState(AnimationState animationState){
         if(animationState == AnimationState.WALKING)
             activeSprite = walkingSprite;
         else if(animationState == AnimationState.STANDING)
             activeSprite = standingSprite;
     }
 
+    public AnimationState getAnimationState(){
+        return this.animationState;
+    }
+
     public void setStandingSprite(TextureRegion textureRegion, int width, int height, int frames){
         standingSprite = new Sprite[frames];
-        for(int col = 0; col < frames; col++) {
+        for(int col = 0; col < frames; col++)
             standingSprite[col] = new Sprite(textureRegion, width * col, 0, width, height);
-        }
     }
 
     public void setMovingSprite(TextureRegion textureRegion, int width, int height, int frames){
         walkingSprite = new Sprite[frames];
-        for(int col = 0; col < frames; col++) {
+        for(int col = 0; col < frames; col++)
             walkingSprite[col] = new Sprite(textureRegion, width * (col + 5), 0, width, height);
-        }
     }
 
     public void update(float dt){
-        if(activeSprite == null){
-            activeSprite = standingSprite;
-        }
+        final int COL_FRAME_DELAY_MAX = 10;
+        final int COL_FRAME_DELAY_MULTIPLIER = 100;
 
-        final int COL_FRAME_DELAY_MAX = 7;
-        final int COL_FRAME_DELAY_MULTIPLIER = 70;
+        if(activeSprite == null)
+            activeSprite = standingSprite;
+
         currentDelay -= (dt * COL_FRAME_DELAY_MULTIPLIER);
+
         if(currentDelay < 0) {
             currentFrame++;
             currentDelay = COL_FRAME_DELAY_MAX;
         }
-        if(currentFrame > activeSprite.length)
+
+        if(currentFrame > activeSprite.length-1)
             currentFrame = 0;
+
+        activeSprite[currentFrame].setFlip(flip, false);
     }
 
     public Sprite getActiveSprite(){

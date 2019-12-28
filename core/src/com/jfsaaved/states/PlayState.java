@@ -11,7 +11,9 @@ public class PlayState extends State{
 
     public PlayState(GameStateManager gameStateManager){
         super(gameStateManager);
-        player = new Player((int)Sandbox.WIDTH/2, (int) Sandbox.HEIGHT/2, 36, 54, 5);
+        player = new Player(Sandbox.images.getAtlas("assets").findRegion("player"),
+                (int)Sandbox.WIDTH/2,
+                (int) Sandbox.HEIGHT/2, 36, 54, 5);
     }
 
     @Override
